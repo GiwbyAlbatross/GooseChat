@@ -1,4 +1,8 @@
+from typing import Optional
 import time
+import os
+
+ENTRIES_FILE = os.environ.get('GOOSECHAT_ENTRIES_FILE', './chatlog.txt')
 
 class Entry:
     seperator: str='/'
@@ -21,3 +25,13 @@ class Entry:
         else: self.timestamp = timestamp
         self.user = user
         self.msg  = msg
+
+def add_msg(msg: str, user: str='guest', timestamp: Optional[float]=None):
+    if timestamp is None:
+        timestamp = time.time()
+    entry = Entry(timestamp, user, msg)
+    with open(ENTRIES_FILE, 'a') as f:
+        f.write(entry.dump())
+def add_entry(entry: Entry):
+    with open(ENTRIES_FILE, 'a') as f:
+        f.write(entry.dump())
