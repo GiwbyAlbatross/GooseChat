@@ -1,9 +1,9 @@
-import flask
+from goosechat import entry
 
-app = flask.Flask(__name__)
+e = entry.Entry(3.14159265, 'user4836', 'I exist now')
 
-@app.route('/')
-def index() -> str:
-    return "Hello World"
+print(e)
+print(e.dump())
+print(entry.Entry.load(e.dump()))
 
-app.run(debug=True)
+assert entry.Entry.load(e.dump()) == e, "load/dump doesn't produce the same result"

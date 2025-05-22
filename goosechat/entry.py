@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Optional
 import time
 import os
@@ -25,6 +26,10 @@ class Entry:
         else: self.timestamp = timestamp
         self.user = user
         self.msg  = msg
+    def __repr__(self) -> str:
+        return f"Entry(timestamp={self.timestamp!r}, user={self.user!r}, msg={self.msg!r})"
+    def __eq__(self, other) -> bool:
+        return self.timestamp == other.timestamp and self.user == other.user and self.msg == other.msg
 
 def add_msg(msg: str, user: str='guest', timestamp: Optional[float]=None):
     if timestamp is None:
