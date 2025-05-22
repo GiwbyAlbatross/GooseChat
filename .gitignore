@@ -1,2 +1,6 @@
 *.pyc
+__pycache__
+goosechat/__pycache__
 ._*
+.mypy_cache
+.pytest_cache
