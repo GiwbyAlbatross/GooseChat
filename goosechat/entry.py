@@ -1,9 +1,11 @@
 from __future__ import annotations
 from typing import Optional
+from threading import Lock
 import time
 import os
 
 ENTRIES_FILE = os.environ.get('GOOSECHAT_ENTRIES_FILE', './chatlog.txt')
+ENTRYFILELOCK= Lock()
 
 class Entry:
     "class representing an entry in the chat log"
@@ -42,16 +44,19 @@ def add_msg(msg: str, user: str='guest', timestamp: Optional[float]=None):
     if timestamp is None:
         timestamp = time.time()
     entry = Entry(timestamp, user, msg)
-    with open(ENTRIES_FILE, 'a', encoding='utf-8') as f:
-        f.write(entry.dump())
+    with ENTRYFILELOCK:
+        with open(ENTRIES_FILE, 'a', encoding='utf-8') as f:
+            f.write(entry.dump())
 def add_entry(entry: Entry):
     "add an Entry into the global chat log"
-    with open(ENTRIES_FILE, 'a', encoding='utf-8') as f:
-        f.write(entry.dump())
+    with ENTRYFILELOCK:
+        with open(ENTRIES_FILE, 'a', encoding='utf-8') as f:
+            f.write(entry.dump())
 
 def get_entries() -> list[Entry]:
     r: list[Entry] = []
-    with open(ENTRIES_FILE, encoding='utf-8') as f:
-        d = f.read().split('/n')
+    with ENTRYFILELOCK:
+        with open(ENTRIES_FILE, encoding='utf-8') as f:
+            d = f.read().split('/n')
     for line in d:
         r.append(Entry.load(line))
