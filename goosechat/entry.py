@@ -48,3 +48,10 @@ def add_entry(entry: Entry):
     "add an Entry into the global chat log"
     with open(ENTRIES_FILE, 'a', encoding='utf-8') as f:
         f.write(entry.dump())
+
+def get_entries() -> list[Entry]:
+    r: list[Entry] = []
+    with open(ENTRIES_FILE, encoding='utf-8') as f:
+        d = f.read().split('/n')
+    for line in d:
+        r.append(Entry.load(line))
