@@ -48,17 +48,21 @@ def add_msg(msg: str, user: str='guest', timestamp: Optional[float]=None):
     with ENTRYFILELOCK:
         with open(ENTRIES_FILE, 'a', encoding='utf-8') as f:
             f.write(entry.dump())
-def add_entry(entry: Entry):
+def add_entry(entry: Entry) -> None:
     "add an Entry into the global chat log"
     with ENTRYFILELOCK:
         with open(ENTRIES_FILE, 'a', encoding='utf-8') as f:
             f.write(entry.dump())
+    return
 
-def get_entries() -> list[Entry]:
+def get_entries(chat_id: str='default') -> list[Entry]:
     "get all entries in the global chat log"
+    if chat_id != 'default': entryfile = chat_id+'txt'
+    else: entryfile = ENTRIES_FILE
     r: list[Entry] = []
     with ENTRYFILELOCK:
-        with open(ENTRIES_FILE, encoding='utf-8') as f:
-            d = f.read().split('/n')
+        with open(entryfile, encoding='utf-8') as f:
+            d = f.read().split('\n')
     for line in d:
         r.append(Entry.load(line))
+    return r

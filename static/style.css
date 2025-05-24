@@ -1,5 +1,11 @@
 .flexbox {
     display: flex;
+    padding: 5px;
+}
+.msg-container {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #272727;
 }
 nav {
     margin: 0px;
@@ -7,6 +13,10 @@ nav {
 }
 body {
     margin: 0px;
+    padding: 0px;
+    background-color: #333;
+    color: #eee;
+    font-family: Helvetica, Arial, sans-serif, monospace
 }
 #main-content {
     padding: 20px;

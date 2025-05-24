@@ -20,5 +20,5 @@ def render_chat(entries: list[Entry]) -> str:
     msgs: list[str] = []
     for entry in entries:
         msgs.append(render_entry(entry))
-    chat_template.format(chat='<br/>'.join(msgs), chat_from='<pre>chat form goes here </pre>')
-    return chat_template
+    #print("msgs (in render_chat):", msgs)
+    return chat_template.format(chat='<br/>'.join(msgs), chat_form='<pre>chat form goes here </pre>')

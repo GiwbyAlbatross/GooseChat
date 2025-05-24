@@ -24,16 +24,41 @@
 # 
 
 from flask import Flask, request, Response, redirect
+from goosechat import entry, markup
 
 app = Flask(__name__)
 
 @app.route('/')
 def index_page():
     return redirect('/chat/default')
+@app.route('/style.css')
+def get_stylesheet():
+    return Response(markup.readfrom('static/style.css'), mimetype='text/css')
+@app.route('/backend/time_conversion.js')
+def get_timeconverter():
+    return markup.readfrom('static/time_conversion.js')
 
-@app.route('/chat/<name>/')
-def chat_page():
-    ...
+@app.route('/chat/<name>/', methods=['GET', 'POST'])
+def chat_page(name):
+    # TODO:
+    # - implement different chats based on name
+    # - ...
+    if request.method == 'GET':
+        # render chat
+        entries = entry.get_entries()
+        print("Entries:", entries)
+        return markup.render_basic_template('Chat: '+name,
+                                            markup.render_chat(
+                                                entries
+                                                )
+                                            )
+        #"""
+        return "NotImplemented<br><br><hr>Coming soon!"
+    elif request.method == 'POST':
+        # post to chat
+        return "NotImplemented"
+    else:
+        return "NotImplemented"
 
 if __name__ == '__main__':
-    app.run('0.0.0.0', threaded=True)
+    app.run('0.0.0.0', debug=__debug__, threaded=True)
