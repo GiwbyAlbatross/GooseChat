@@ -46,7 +46,7 @@ def chat_page(name):
     if request.method == 'GET':
         # render chat
         entries = entry.get_entries()
-        print("Entries:", entries)
+        #print("Entries:", entries)
         return markup.render_basic_template('Chat: '+name,
                                             markup.render_chat(
                                                 entries
@@ -56,7 +56,11 @@ def chat_page(name):
         return "NotImplemented<br><br><hr>Coming soon!"
     elif request.method == 'POST':
         # post to chat
-        return "NotImplemented"
+        user = request.cookies.get('username', 'guest')
+        msg  = request.form.get('msg')
+        print(f"Adding message {msg!r} from user {user!r}")
+        entry.add_msg(msg, user)
+        return redirect("/chat/"+name)
     else:
         return "NotImplemented"
 

@@ -16,7 +16,7 @@ class Entry:
     msg: str
     def dump(self) -> str:
         "dump this Entry into a string to put in a chat log file"
-        return self.seperator.join(
+        return '\n'+self.seperator.join(
             [
                 str(self.timestamp),
                 self.user,
