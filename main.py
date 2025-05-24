@@ -64,5 +64,20 @@ def chat_page(name):
     else:
         return "NotImplemented"
 
+@app.route('/login/', methods=['GET', 'POST'])
+def login_page():
+    if request.method == 'GET':
+        return markup.render_basic_template('Log in to GooseChat', markup.readfrom('static/login.html'))
+    elif request.method == 'POST':
+        username = request.form.get('username')
+        resp = Response('<script>location.pathname="/";</script>')
+        resp.set_cookie('username', username)
+        return resp
+
 if __name__ == '__main__':
     app.run('0.0.0.0', debug=__debug__, threaded=True)
+
+###############
+# GISLEBURTUS #
+#  HOC FECIT  #
+###############

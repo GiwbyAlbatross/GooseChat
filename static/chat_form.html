@@ -1,8 +1,9 @@
 <div>
-    <form method="POST">
+    <form method="POST" id="chatentry">
         <h3>Post to this chat</h3>
         <br>
-        <input type="text" name="msg"/>
-        <input type="submit" value="SEND"/>
+        <!-- <input type="textarea" name="msg"/> -->
+        <div class="flexbox"><textarea autocomplete="on" autocorrect="on" form="chatentry" name="msg" required style="flex-grow:5;"></textarea><pre style="flex-grow: 1;"> <pre>
+        <input type="submit" style="align-self: center;" value="SEND"/></div>
     </form>
 </div>

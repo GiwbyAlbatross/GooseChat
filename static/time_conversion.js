@@ -15,7 +15,9 @@ function humanTime(secondsThen) {
     if (minutesAgo < 0) return "In the future somwhere...";
     if (minutesAgo < 2) return "Just now";
     if (minutesAgo < 72)
-        return Math.round(minutesAgo.toString()) + " minutes ago";
+        return Math.round(minutesAgo).toString() + " minutes ago";
+    if (minutesAgo < 60*24)
+        return Math.round(minutesAgo/60).toString() + " hours ago";
     if (minutesAgo < 24*60*6)
         return dayOfWeekTranslator.format(time) + ' at ' + time.getHours()+':'+time.getMinutes();
     if (minutesAgo < 24*60*365)

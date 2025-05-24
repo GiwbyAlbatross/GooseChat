@@ -18,6 +18,9 @@ body {
     color: #eee;
     font-family: Helvetica, Arial, sans-serif, monospace
 }
+a {
+    color: #00fe4f;
+}
 #main-content {
     padding: 20px;
 }
