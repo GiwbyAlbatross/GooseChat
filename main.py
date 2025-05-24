@@ -36,7 +36,7 @@ def get_stylesheet():
     return Response(markup.readfrom('static/style.css'), mimetype='text/css')
 @app.route('/backend/time_conversion.js')
 def get_timeconverter():
-    return markup.readfrom('static/time_conversion.js')
+    return Response(markup.readfrom('static/time_conversion.js'), mimetype='text/javascript')
 
 @app.route('/chat/<name>/', methods=['GET', 'POST'])
 def chat_page(name):

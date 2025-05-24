@@ -7,11 +7,15 @@ function getLang() {
 
 const dayOfWeekTranslator = new Intl.DateTimeFormat(getLang(), {'weekday':'long'});
 
-function humanTime(seconds) {
-    const time = new Date(seconds*1000);
-    const minutesAgo = ((Date.now().getTime() / 1000) - seconds)/60;
-    if (minutesAgo < 16)
-        return minutesAgo.toString() + " minutes ago";
+function humanTime(secondsThen) {
+    const time = new Date(secondsThen*1000);
+    const secondsNow = Date.now() / 1000;
+    //console.log(`msg at ${secondsAgo} seconds ago`);
+    const minutesAgo = (secondsNow - secondsThen)/60;
+    if (minutesAgo < 0) return "In the future somwhere...";
+    if (minutesAgo < 2) return "Just now";
+    if (minutesAgo < 72)
+        return Math.round(minutesAgo.toString()) + " minutes ago";
     if (minutesAgo < 24*60*6)
         return dayOfWeekTranslator.format(time) + ' at ' + time.getHours()+':'+time.getMinutes();
     if (minutesAgo < 24*60*365)
