@@ -1,4 +1,5 @@
 #!/usr/bin/env -S python3 -m pytest
+#pylint: skip-file
 "Test the GooseChat web application backend. "
 from goosechat import entry
 

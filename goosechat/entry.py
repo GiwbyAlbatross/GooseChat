@@ -1,3 +1,4 @@
+# pylint: disable=invalid-name,missing-module-docstring
 from __future__ import annotations
 from typing import Optional
 from threading import Lock
@@ -54,6 +55,7 @@ def add_entry(entry: Entry):
             f.write(entry.dump())
 
 def get_entries() -> list[Entry]:
+    "get all entries in the global chat log"
     r: list[Entry] = []
     with ENTRYFILELOCK:
         with open(ENTRIES_FILE, encoding='utf-8') as f:
