@@ -23,6 +23,7 @@
 #  
 # 
 
+import base64
 from flask import Flask, request, Response, redirect
 from goosechat import entry, markup, auth, ChatNotFoundError
 
@@ -74,7 +75,7 @@ def login_page():
         username = request.form.get('username').strip(' ')
         password = auth.encodepass(request.form.get('passwd'))
         if username not in HIDDEN_PASSWORDS:
-            print(f"Loggin in with username: {username!r} password: {password!r}")
+            print(f"Loggin in with username: {username!r} from {request.remote_addr}")
         #print("Received and encoded username and password")
         resp = Response('<script>location.pathname="/";</script>')
         legit = 'False'
@@ -94,6 +95,8 @@ def login_page():
             #resp.set_cookie('legit', 'True')
             legit = 'True'
         resp.set_cookie('legit', legit)
+        if legit == 'True':
+            resp.set_cookie('goosechat-authcode', base64.b64encode(auth.authcodemanager.get_code(username)))
         resp.set_cookie('username', username)
         return resp
 

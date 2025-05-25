@@ -30,17 +30,24 @@ class AuthCodeEntry:
     user: str
     code: bytes
     expiry: float
-class AuthCodeSystem:
+class AuthCodeManager:
     db: dict[str, AuthCodeEntry]
     db_lock: Lock
     def __init__(self):
         self.db = {}
         self.db_lock = Lock()
     def is_valid(self, usr: str, authcode: bytes) -> bool:
-        with self.db_lock: code_entry = self.db[usr]
-        return secrets.compare_digest(code_entry.code) == authcode
+        with self.db_lock:
+            if usr not in self.db:
+                return False
+            code_entry = self.db[usr]
+        return secrets.compare_digest(code_entry.code, authcode)
         #raise NotImplementedError
     def get_code(self, usr: str) -> bytes:
+        with self.db_lock:
+            if usr in self.db:
+                code_entry = self.db[usr]
+                code_entry.expiry += 60*15
         code_entry = AuthCodeEntry(usr, self._generate_code(), time.time()+3600)
         with self.db_lock: self.db[usr] = code_entry
         return code_entry.code
@@ -98,6 +105,13 @@ def encodepass(passwd: str) -> bytes:
     #return passwd.encode('ascii')
     return hashlib.sha3_384(passwd.encode('utf-16')).digest()
 
+authcodemanager = AuthCodeManager()
+
 def is_legit(cookies) -> bool:
     " is this the correct cookie set to be legit. Will be different when we have proper auth going on "
-    return _parsebool(cookies.get('legit', 'false'))
+    #return _parsebool(cookies.get('legit', 'false'))
+    username = cookies.get('username', 'guest')
+    if username == 'guest': return False
+    cookie_authcode = base64.b64decode(cookies.get('goosechat-authcode',
+        'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'))
+    return authcodemanager.is_valid(username, cookie_authcode)
