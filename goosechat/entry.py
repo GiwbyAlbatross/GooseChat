@@ -1,5 +1,6 @@
 # pylint: disable=invalid-name,missing-module-docstring
 from __future__ import annotations
+from . import ChatNotFoundError
 from typing import Optional
 from threading import Lock
 import time
@@ -7,6 +8,8 @@ import os
 
 ENTRIES_FILE = os.environ.get('GOOSECHAT_ENTRIES_FILE', './chatlog.txt')
 ENTRYFILELOCK= Lock()
+try: os.mkdir('chats')
+except OSError: pass
 
 def _cleancrlf(s: str) -> str:
     r = ""
@@ -67,29 +70,36 @@ class Entry:
             self.user == other.user and self.msg == other.msg\
             and self.legit == other.legit
 
-def add_msg(msg: str, user: str='guest', timestamp: Optional[float]=None, legit: Optional[bool]=None):
+def add_msg(msg: str, user: str='guest', timestamp: Optional[float]=None, legit: Optional[bool]=None, chat_id='default'):
     "add a message into the global chat log"
+    if chat_id != 'default': entryfile = os.path.join('chats', chat_id+'.txt')
+    else: entryfile = ENTRIES_FILE
     if timestamp is None:
         timestamp = time.time()
     entry = Entry(timestamp, user, _cleancrlf(msg), _parsebool(legit))
     with ENTRYFILELOCK:
-        with open(ENTRIES_FILE, 'a', encoding='utf-8') as f:
+        with open(entryfile, 'a', encoding='utf-8') as f:
             f.write(entry.dump())
-def add_entry(entry: Entry) -> None:
+def add_entry(entry: Entry, chat_id='default') -> None:
     "add an Entry into the global chat log"
+    if chat_id != 'default': entryfile = os.path.join('chats', chat_id+'.txt')
+    else: entryfile = ENTRIES_FILE
     with ENTRYFILELOCK:
-        with open(ENTRIES_FILE, 'a', encoding='utf-8') as f:
+        with open(entryfile, 'a', encoding='utf-8') as f:
             f.write(entry.dump())
     return
 
 def get_entries(chat_id: str='default') -> list[Entry]:
     "get all entries in the global chat log"
-    if chat_id != 'default': entryfile = chat_id+'txt'
+    if chat_id != 'default': entryfile = os.path.join('chats', chat_id+'.txt')
     else: entryfile = ENTRIES_FILE
     r: list[Entry] = []
     with ENTRYFILELOCK:
-        with open(entryfile, encoding='utf-8') as f:
-            d = f.read().strip('\n').split('\n')
+        try:
+            with open(entryfile, encoding='utf-8') as f:
+                d = f.read().strip('\n').split('\n')
+        except FileNotFoundError as e:
+            raise ChatNotFoundError(entryfile)
     for line in d:
         r.append(Entry.load(line))
     return r

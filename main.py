@@ -24,7 +24,7 @@
 # 
 
 from flask import Flask, request, Response, redirect
-from goosechat import entry, markup, auth
+from goosechat import entry, markup, auth, ChatNotFoundError
 
 app = Flask(__name__)
 HIDDEN_PASSWORDS = {'admin', 'root', 'giwby', 'herobrine'}
@@ -42,11 +42,11 @@ def get_timeconverter():
 @app.route('/chat/<name>/', methods=['GET', 'POST'])
 def chat_page(name):
     # TODO:
-    # - implement different chats based on name
+    # - implement different chats based on name [working on it]
     # - ...
     if request.method == 'GET':
         # render chat
-        entries = entry.get_entries()
+        entries = entry.get_entries(name)
         #print("Entries:", entries)
         return markup.render_basic_template('Chat: '+name,
                                             markup.render_chat(
@@ -57,11 +57,11 @@ def chat_page(name):
         return "NotImplemented<br><br><hr>Coming soon!"
     elif request.method == 'POST':
         # post to chat
-        user  = request.cookies.get('username', 'guest').strip() # fixes a bug my sister found...
+        user  = request.cookies.get('username', 'guest').strip(' ') # fixes a bug my sister found...
         legit = request.cookies.get('legit', 'False')
         msg   = request.form.get('msg')
-        print(f"Adding message {msg!r} from user {user!r}. Cookies: {request.cookies!r}")
-        entry.add_msg(msg, user, legit=legit)
+        print(f"Adding message {msg!r} from user {user!r} to chat {name!r}. Cookies: {request.cookies!r}")
+        entry.add_msg(msg, user, legit=legit, chat_id=name)
         return redirect("/chat/"+name)
     else:
         return "NotImplemented"
@@ -97,8 +97,24 @@ def login_page():
         resp.set_cookie('username', username)
         return resp
 
+@app.errorhandler(404)
+def _404handler(e):
+    err = """<h3>Page not found</h3>
+    <p>The page <script>document.write(location.href)</script><noscript>you requested</noscript> was not found on this server</p>"""
+    return markup.render_basic_template('404 - Not found', markup.readfrom('static/404.html').format(err)), 404
+@app.errorhandler(FileNotFoundError)
+def _filenotfoundhandler(e):
+    err = """<h3>Internal File not Found</h3><p>A file on GooseChat's backend could not be found.
+    The original Error was: <pre>{}</pre>""".format(":".join([type(e).__name__, str(e)]))
+    return markup.render_basic_template('404 - Not found', markup.readfrom('static/404.html').format(err)), 404
+@app.errorhandler(ChatNotFoundError)
+def _chatnotfoundhandler(e):
+    err = """<h3>Chat not found</h3><p>There is no such chat</p>"""
+    if __debug__: err += "The original error message was: <pre>"+repr(e)+'</pre>'
+    return markup.render_basic_template('404 - Not found', markup.readfrom('static/404.html').format(err)), 404
+
 if __name__ == '__main__':
-    app.run('0.0.0.0', debug=False, threaded=True)
+    app.run('0.0.0.0', debug=__debug__, threaded=True)
 
 ###############
 # GISLEBURTUS #

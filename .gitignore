@@ -4,4 +4,8 @@ goosechat/__pycache__
 ._*
 .mypy_cache
 .pytest_cache
+
+# stuff goosechat itself generates
 chatlog.txt
+chats/
+goosechat.passwd
