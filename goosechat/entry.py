@@ -8,6 +8,13 @@ import os
 ENTRIES_FILE = os.environ.get('GOOSECHAT_ENTRIES_FILE', './chatlog.txt')
 ENTRYFILELOCK= Lock()
 
+def _strip_list(l: list, o: object) -> list:
+    r = []
+    for e in l:
+        if e != object:
+            r.append(e)
+    return r
+
 class Entry:
     "class representing an entry in the chat log"
     seperator: str='/'
@@ -27,11 +34,15 @@ class Entry:
     @classmethod
     def load(cls, d: str):
         "create an Entry from a string generated from Entry.dump"
-        d1 = d[:-1]
-        d2 = d[-1]
+        try:
+            d1 = d[:-1]
+            d2 = d[-1]
+        except IndexError as e:
+            print(f"d: {d!r}, d1: {d1!r}")
+            raise e
         if d2 not in {'~', '^'}:
             d1 += d2
-        print("d1:", d1, "d2:",d2)
+        #print("d1:", d1, "d2:",d2)
         timestamp, usr, msg = d1.split(cls.seperator, 2)
         return cls(timestamp, usr, msg, legit=(d2=='^'))
     def __init__(self, timestamp: str|float, user: str, msg: str, legit=False):
@@ -71,7 +82,7 @@ def get_entries(chat_id: str='default') -> list[Entry]:
     r: list[Entry] = []
     with ENTRYFILELOCK:
         with open(entryfile, encoding='utf-8') as f:
-            d = f.read().split('\n')
+            d = f.read().strip('\n').split('\n')
     for line in d:
         r.append(Entry.load(line))
     return r
