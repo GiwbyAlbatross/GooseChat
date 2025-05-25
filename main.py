@@ -71,7 +71,7 @@ def login_page():
     if request.method == 'GET':
         return markup.render_basic_template('Log in to GooseChat', markup.readfrom('static/login.html'))
     elif request.method == 'POST':
-        username = request.form.get('username')
+        username = request.form.get('username').strip(' ')
         password = auth.encodepass(request.form.get('passwd'))
         if username not in HIDDEN_PASSWORDS:
             print(f"Loggin in with username: {username!r} password: {password!r}")
@@ -98,7 +98,7 @@ def login_page():
         return resp
 
 if __name__ == '__main__':
-    app.run('0.0.0.0', debug=__debug__, threaded=True)
+    app.run('0.0.0.0', debug=False, threaded=True)
 
 ###############
 # GISLEBURTUS #
