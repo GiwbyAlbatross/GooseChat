@@ -61,7 +61,7 @@ def chat_page(name):
         user  = request.cookies.get('username', 'guest').strip(' ') # fixes a bug my sister found...
         legit = auth.is_legit(request.cookies)
         msg   = request.form.get('msg')
-        print(f"Adding message {msg!r} by user {user!r} to chat {name!r} from {request.remote_user}")
+        print(f"Adding message {msg!r} by user {user!r} to chat {name!r} from {request.remote_addr}")
         entry.add_msg(msg, user, legit=legit, chat_id=name)
         return redirect("/chat/"+name)
     else:
