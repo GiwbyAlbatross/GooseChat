@@ -19,11 +19,6 @@ def _cleancrlf(s: str) -> str:
         elif c != '\r':
             r += c
     return r
-def _parsebool(s: str) -> bool:
-    s = s.lower()
-    if s == 'true':
-        return True
-    return False
 
 class Entry:
     "class representing an entry in the chat log"
@@ -76,7 +71,7 @@ def add_msg(msg: str, user: str='guest', timestamp: Optional[float]=None, legit:
     else: entryfile = ENTRIES_FILE
     if timestamp is None:
         timestamp = time.time()
-    entry = Entry(timestamp, user, _cleancrlf(msg), _parsebool(legit))
+    entry = Entry(timestamp, user, _cleancrlf(msg), legit)
     with ENTRYFILELOCK:
         with open(entryfile, 'a', encoding='utf-8') as f:
             f.write(entry.dump())

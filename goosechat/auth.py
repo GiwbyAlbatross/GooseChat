@@ -1,12 +1,19 @@
 " authentication routines for GooseChat "
 from threading import Lock
 from enum import Enum
+import secrets
 import hashlib
 import base64
 import os
 
-PASSWD_PATH = os.environ.get("GOOSECHAT_PASSWD", 'goosechat.passwd')
+PASSWD_PATH = os.environ.get("GOOSECHAT_PASSWD", 'goosechat.shadow.passwd')
 PASSWD_LOCK = Lock()
+
+def _parsebool(s: str) -> bool:
+    s = s.lower()
+    if s == 'true':
+        return True
+    return False
 
 if not os.path.exists(PASSWD_PATH):
     with open(PASSWD_PATH, 'x'): pass # create the file
@@ -59,4 +66,9 @@ def check_pass(usr: str, passwd: bytes) -> bool:
 
 def encodepass(passwd: str) -> bytes:
     " in future, this will hash the password, but anyway "
-    return passwd.encode('ascii')
+    #return passwd.encode('ascii')
+    return hashlib.sha3_384(passwd.encode('utf-16')).digest()
+
+def is_legit(cookies) -> bool:
+    " is this the correct cookie set to be legit. Will be different when we have proper auth going on "
+    return _parsebool(cookies.get('legit', 'false'))
