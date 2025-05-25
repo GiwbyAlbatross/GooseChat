@@ -13,7 +13,9 @@ def render_basic_template(title, content):
 
 def render_entry(entry: Entry) -> str:
     msg_template = readfrom('static/msg.template.html')
-    return msg_template.format(username=entry.user, msg=entry.msg, timestamp=entry.timestamp)
+    legit = '  ' + ('<sup>LEGIT</sup>' if entry.legit else '<sub>IMPOSTOR</sub>')
+    return msg_template.format(username=entry.user+legit, msg=entry.msg,
+                               timestamp=entry.timestamp)
 
 def render_chat(entries: list[Entry]) -> str:
     chat_template = readfrom('static/chat_page.template.html')

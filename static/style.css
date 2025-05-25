@@ -18,6 +18,9 @@ body {
     color: #eee;
     font-family: Helvetica, Arial, sans-serif, monospace
 }
+sub, sup {
+    font-size: 0.5em;
+}
 a {
     color: #00fe4f;
 }

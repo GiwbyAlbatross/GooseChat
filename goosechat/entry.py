@@ -12,6 +12,7 @@ class Entry:
     "class representing an entry in the chat log"
     seperator: str='/'
     timestamp: float
+    legit: bool
     user: str
     msg: str
     def dump(self) -> str:
@@ -22,23 +23,31 @@ class Entry:
                 self.user,
                 self.msg
              ]
-        )
+        ) + ('^' if self.legit else '~')
     @classmethod
     def load(cls, d: str):
         "create an Entry from a string generated from Entry.dump"
-        return cls(*(d.split(cls.seperator, 2)))
-    def __init__(self, timestamp: str|float, user: str, msg: str):
+        d1 = d[:-1]
+        d2 = d[-1]
+        if d2 not in {'~', '^'}:
+            d1 += d2
+        print("d1:", d1, "d2:",d2)
+        timestamp, usr, msg = d1.split(cls.seperator, 2)
+        return cls(timestamp, usr, msg, legit=(d2=='^'))
+    def __init__(self, timestamp: str|float, user: str, msg: str, legit=False):
         if isinstance(timestamp, str):
             self.timestamp = float(timestamp)
         else:
             self.timestamp = timestamp
+        self.legit = legit
         self.user = user
         self.msg  = msg
     def __repr__(self) -> str:
-        return f"Entry(timestamp={self.timestamp!r}, user={self.user!r}, msg={self.msg!r})"
+        return f"Entry(timestamp={self.timestamp!r}, user={self.user!r}, msg={self.msg!r}, legit={self.legit!r})"
     def __eq__(self, other) -> bool:
         return self.timestamp == other.timestamp and \
-            self.user == other.user and self.msg == other.msg
+            self.user == other.user and self.msg == other.msg\
+            and self.legit == other.legit
 
 def add_msg(msg: str, user: str='guest', timestamp: Optional[float]=None):
     "add a message into the global chat log"
