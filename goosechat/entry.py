@@ -8,11 +8,13 @@ import os
 ENTRIES_FILE = os.environ.get('GOOSECHAT_ENTRIES_FILE', './chatlog.txt')
 ENTRYFILELOCK= Lock()
 
-def _strip_list(l: list, o: object) -> list:
-    r = []
-    for e in l:
-        if e != object:
-            r.append(e)
+def _cleancrlf(s: str) -> str:
+    r = ""
+    for i, c in enumerate(s):
+        if c == '\n' and s[i-1] == '\r':
+            r += "<br/>"
+        elif c != '\r':
+            r += c
     return r
 
 class Entry:
@@ -64,7 +66,7 @@ def add_msg(msg: str, user: str='guest', timestamp: Optional[float]=None):
     "add a message into the global chat log"
     if timestamp is None:
         timestamp = time.time()
-    entry = Entry(timestamp, user, msg)
+    entry = Entry(timestamp, user, _cleancrlf(msg))
     with ENTRYFILELOCK:
         with open(ENTRIES_FILE, 'a', encoding='utf-8') as f:
             f.write(entry.dump())

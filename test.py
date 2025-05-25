@@ -16,3 +16,6 @@ def test_legit_entry_load_dump():
                     'I am a person with a really amazing username. I have a / in my message!',
                     legit=True)
     assert entry.Entry.load(e.dump()) == e, "load/dump doesn't produce the same result"
+def test_cleancrlf():
+    d = "Hello\r\nWorld!"
+    assert entry._cleancrlf(d) == "Hello<br/>World!"
