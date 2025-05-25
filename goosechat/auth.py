@@ -1,9 +1,12 @@
 " authentication routines for GooseChat "
+from dataclasses import dataclass
 from threading import Lock
 from enum import Enum
+import tempfile
 import secrets
 import hashlib
 import base64
+import time
 import os
 
 PASSWD_PATH = os.environ.get("GOOSECHAT_PASSWD", 'goosechat.shadow.passwd')
@@ -22,6 +25,34 @@ class EnumPasswdUpdateStatus(Enum):
     FAIL = 0
     CHANGE = 1
     ADDUSR = 2
+@dataclass
+class AuthCodeEntry:
+    user: str
+    code: bytes
+    expiry: float
+class AuthCodeSystem:
+    db: dict[str, AuthCodeEntry]
+    db_lock: Lock
+    def __init__(self):
+        self.db = {}
+        self.db_lock = Lock()
+    def is_valid(self, usr: str, authcode: bytes) -> bool:
+        with self.db_lock: code_entry = self.db[usr]
+        return secrets.compare_digest(code_entry.code) == authcode
+        #raise NotImplementedError
+    def get_code(self, usr: str) -> bytes:
+        code_entry = AuthCodeEntry(usr, self._generate_code(), time.time()+3600)
+        with self.db_lock: self.db[usr] = code_entry
+        return code_entry.code
+    def _generate_code(self):
+        return secrets.token_bytes(48)
+    def _expiry_thread(self):
+        while 1:
+            time.sleep(60)
+            with self.db_lock:
+                for usr, entry in self.db.items():
+                    if entry.expiry > time.time():
+                        del self.db[usr]
 
 def get_passdb() -> dict[str, bytes]:
     with PASSWD_LOCK:
@@ -56,16 +87,14 @@ def add_pass(usr: str, passwd: bytes) -> EnumPasswdUpdateStatus:
 
 def check_pass(usr: str, passwd: bytes) -> bool:
     r = False
-    #with PASSWD_LOCK:
-    if 1:
-        passdb = get_passdb()
-        if usr in passdb:
-            if passdb[usr] == passwd:
-                r = True
+    passdb = get_passdb()
+    if usr in passdb:
+        if secrets.compare_digest(passdb[usr], passwd):
+            r = True
     return r
 
 def encodepass(passwd: str) -> bytes:
-    " in future, this will hash the password, but anyway "
+    " this will hash the password "
     #return passwd.encode('ascii')
     return hashlib.sha3_384(passwd.encode('utf-16')).digest()
 
