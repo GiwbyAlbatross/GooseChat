@@ -24,9 +24,10 @@
 # 
 
 from flask import Flask, request, Response, redirect
-from goosechat import entry, markup
+from goosechat import entry, markup, auth
 
 app = Flask(__name__)
+HIDDEN_PASSWORDS = {'admin', 'root', 'giwby', 'herobrine'}
 
 @app.route('/')
 def index_page():
@@ -56,10 +57,11 @@ def chat_page(name):
         return "NotImplemented<br><br><hr>Coming soon!"
     elif request.method == 'POST':
         # post to chat
-        user = request.cookies.get('username', 'guest')
-        msg  = request.form.get('msg')
-        print(f"Adding message {msg!r} from user {user!r}")
-        entry.add_msg(msg, user)
+        user  = request.cookies.get('username', 'guest').strip() # fixes a bug my sister found...
+        legit = request.cookies.get('legit', 'False')
+        msg   = request.form.get('msg')
+        print(f"Adding message {msg!r} from user {user!r}. Cookies: {request.cookies!r}")
+        entry.add_msg(msg, user, legit=legit)
         return redirect("/chat/"+name)
     else:
         return "NotImplemented"
@@ -70,7 +72,28 @@ def login_page():
         return markup.render_basic_template('Log in to GooseChat', markup.readfrom('static/login.html'))
     elif request.method == 'POST':
         username = request.form.get('username')
+        password = auth.encodepass(request.form.get('passwd'))
+        if username not in HIDDEN_PASSWORDS:
+            print(f"Loggin in with username: {username!r} password: {password!r}")
+        #print("Received and encoded username and password")
         resp = Response('<script>location.pathname="/";</script>')
+        legit = 'False'
+        #resp.set_cookie('legit', 'False')
+        #print("Checking password")
+        if not auth.check_pass(username, password):
+            #print("Password wrong")
+            if auth.add_pass(username, password) == auth.EnumPasswdUpdateStatus.CHANGE:
+                #print("Wrong password, impostor user")
+                pass
+            else:
+                #print("Set new password")
+                #resp.set_cookie('legit', 'True')
+                legit = 'True'
+        else:
+            #print("Password correct")
+            #resp.set_cookie('legit', 'True')
+            legit = 'True'
+        resp.set_cookie('legit', legit)
         resp.set_cookie('username', username)
         return resp
 

@@ -5,7 +5,7 @@ import hashlib
 import base64
 import os
 
-PASSWD_PATH = os.environ("GOOSECHAT_PASSWD", 'goosechat.passwd')
+PASSWD_PATH = os.environ.get("GOOSECHAT_PASSWD", 'goosechat.passwd')
 PASSWD_LOCK = Lock()
 
 if not os.path.exists(PASSWD_PATH):
@@ -20,7 +20,9 @@ def get_passdb() -> dict[str, bytes]:
     with PASSWD_LOCK:
         r = {}
         with open(PASSWD_PATH, 'r', encoding='ascii') as passwd_file:
-            d = passwd_file.read().split('\n')
+            d = passwd_file.read()
+        if d == '': return {}
+        else: d = d.split('\n')
         r1 = {}
         for line in d:
             splitline = line.split(':', 1)
@@ -30,27 +32,30 @@ def get_passdb() -> dict[str, bytes]:
     return r
 
 def add_pass(usr: str, passwd: bytes) -> EnumPasswdUpdateStatus:
+    if usr in get_passdb():
+        ... # later
+        return EnumPasswdUpdateStatus.CHANGE # meaning fail in this case
     with PASSWD_LOCK:
-        if usr in get_passdb():
-            ... # later
-            return EnumPasswdUpdateStatus.CHANGE # meaning fail in this case
         try:
             with open(PASSWD_PATH, 'a', encoding='ascii') as passwd_file:
-                passwd_file.write(':'.join(usr,
-                                           base64.b64encode(passwd).decode()
-                                       ))
+                passwd_file.write('\n' + (':'.join([usr,
+                                           base64.b64encode(passwd).decode()]
+                                       )))
+        except Exception as e: raise e
         else:
             return EnumPasswdUpdateStatus.ADDUSR
-        #except Exception as e:
-        #    print(e); return EnumPasswdUpdateStatus.FAIL
+    #except Exception as e:
+    #    print(e); return EnumPasswdUpdateStatus.FAIL
 
 def check_pass(usr: str, passwd: bytes) -> bool:
-    with PASSWD_LOCK:
+    r = False
+    #with PASSWD_LOCK:
+    if 1:
         passdb = get_passdb()
         if usr in passdb:
             if passdb[usr] == passwd:
-                return True
-    return False
+                r = True
+    return r
 
 def encodepass(passwd: str) -> bytes:
     " in future, this will hash the password, but anyway "
