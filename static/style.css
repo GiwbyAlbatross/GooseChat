@@ -12,9 +12,18 @@
         flex-direction: column-reverse;
     }
 }
+.flex-align-right {
+    padding-right: 5px;
+    padding-left: auto;
+}
+.flex-align-center {
+    align-self: center;
+}
 nav {
     margin: 0px;
     padding: 5px;
+    color: #0f4;
+    background-color: #111;
 }
 body {
     margin: 0px;
@@ -28,6 +37,9 @@ sub, sup {
 }
 a {
     color: #00fe4f;
+}
+a.no-underline {
+    text-decoration: none;
 }
 #main-content {
     padding: 20px;
