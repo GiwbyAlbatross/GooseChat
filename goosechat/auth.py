@@ -1,6 +1,6 @@
 " authentication routines for GooseChat "
 from dataclasses import dataclass
-from threading import Lock
+from threading import Lock, Thread
 from enum import Enum
 import tempfile
 import secrets
@@ -106,6 +106,12 @@ def encodepass(passwd: str) -> bytes:
     return hashlib.sha3_384(passwd.encode('utf-16')).digest()
 
 authcodemanager = AuthCodeManager()
+
+def start_entry_timeout_thread() -> Thread:
+    "starts the thread which looks after expiring authcodes"
+    r = Thread(target=authcodemanager._expiry_thread, name="authcodemanager_expiry-thread")
+    r.start()
+    return r
 
 def is_legit(cookies) -> bool:
     " is this the correct cookie set to be legit. Will be different when we have proper auth going on "

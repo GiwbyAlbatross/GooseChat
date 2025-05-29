@@ -54,8 +54,6 @@ def chat_page(name):
                                                 entries
                                                 )
                                             )
-        #"""
-        return "NotImplemented<br><br><hr>Coming soon!"
     elif request.method == 'POST':
         # post to chat
         user  = request.cookies.get('username', 'guest').strip(' ') # fixes a bug my sister found...
@@ -118,6 +116,7 @@ def _chatnotfoundhandler(e):
     return markup.render_basic_template('404 - Not found', markup.readfrom('static/404.html').format(err)), 404
 
 if __name__ == '__main__':
+    auth.start_entry_timeout_thread()
     app.run('0.0.0.0', debug=__debug__, threaded=True)
 
 ###############
