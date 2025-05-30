@@ -9,3 +9,4 @@ goosechat/__pycache__
 chatlog.txt
 chats/
 goosechat.passwd
+goosechat.shadow.passwd
