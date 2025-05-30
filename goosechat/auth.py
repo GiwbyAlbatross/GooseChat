@@ -2,7 +2,6 @@
 from dataclasses import dataclass
 from threading import Lock, Thread
 from enum import Enum
-import tempfile
 import secrets
 import hashlib
 import base64
@@ -11,12 +10,6 @@ import os
 
 PASSWD_PATH = os.environ.get("GOOSECHAT_PASSWD", 'goosechat.shadow.passwd')
 PASSWD_LOCK = Lock()
-
-def _parsebool(s: str) -> bool:
-    s = s.lower()
-    if s == 'true':
-        return True
-    return False
 
 if not os.path.exists(PASSWD_PATH):
     with open(PASSWD_PATH, 'x'): pass # create the file
@@ -56,19 +49,21 @@ class AuthCodeManager:
     def _expiry_thread(self):
         while 1:
             time.sleep(60)
+            print("Checking for expired authcodes")
             with self.db_lock:
                 for usr, entry in self.db.items():
                     if entry.expiry > time.time():
+                        print("Deleting authcode:", repr(entry))
                         del self.db[usr]
 
 def get_passdb() -> dict[str, bytes]:
+    r: dict[str, bytes]={}
     with PASSWD_LOCK:
-        r = {}
         with open(PASSWD_PATH, 'r', encoding='ascii') as passwd_file:
             d = passwd_file.read()
         if d == '': return {}
         else: d = d.split('\n')
-        r1 = {}
+        r1: dict[str, str] = {}
         for line in d:
             splitline = line.split(':', 1)
             r1[splitline[0]] = splitline[1]
