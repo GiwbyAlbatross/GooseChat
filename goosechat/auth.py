@@ -23,6 +23,10 @@ class AuthCodeEntry:
     user: str
     code: bytes
     expiry: float
+    def __repr__(self) -> str:
+        expiredAgo = int(time.time() - self.expiry)
+        expiry = f"d {expiredAgo} seconds ago" if expiredAgo > 0 else f"s in {-expiredAgo} seconds"
+        return f"<AuthCode for {self.user} which expire{expiry}>"
 class AuthCodeManager:
     db: dict[str, AuthCodeEntry]
     db_lock: Lock
@@ -41,7 +45,8 @@ class AuthCodeManager:
             if usr in self.db:
                 code_entry = self.db[usr]
                 code_entry.expiry += 60*15
-        code_entry = AuthCodeEntry(usr, self._generate_code(), time.time()+3600)
+            else:
+                code_entry = AuthCodeEntry(usr, self._generate_code(), expiry=time.time()+3600)
         with self.db_lock: self.db[usr] = code_entry
         return code_entry.code
     def _generate_code(self):
@@ -50,11 +55,18 @@ class AuthCodeManager:
         while 1:
             time.sleep(60)
             print("Checking for expired authcodes")
-            with self.db_lock:
-                for usr, entry in self.db.items():
-                    if entry.expiry > time.time():
-                        print("Deleting authcode:", repr(entry))
+            todelete_keys = []
+            try:
+                with self.db_lock:
+                    for usr, entry in self.db.items():
+                        if entry.expiry < time.time():
+                            print("Deleting authcode:", repr(entry))
+                            #del self.db[usr]
+                            todelete_keys.append(usr)
+                    for usr in todelete_keys:
                         del self.db[usr]
+            except RuntimeError as e:
+                print(type(e).__name__, str(e), sep=': ')
 
 def get_passdb() -> dict[str, bytes]:
     r: dict[str, bytes]={}
@@ -62,9 +74,10 @@ def get_passdb() -> dict[str, bytes]:
         with open(PASSWD_PATH, 'r', encoding='ascii') as passwd_file:
             d = passwd_file.read()
         if d == '': return {}
-        else: d = d.split('\n')
+        else: d = d.strip(' \n').split('\n')
         r1: dict[str, str] = {}
         for line in d:
+            if line == '': continue
             splitline = line.split(':', 1)
             r1[splitline[0]] = splitline[1]
         for usr in r1:
