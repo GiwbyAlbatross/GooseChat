@@ -96,5 +96,7 @@ def get_entries(chat_id: str='default') -> list[Entry]:
         except FileNotFoundError as e:
             raise ChatNotFoundError(entryfile)
     for line in d:
-        r.append(Entry.load(line))
+        #if line == '': continue # old solution, idk if it works or not
+        try: r.append(Entry.load(line))
+        except IndexError: pass # skip malformed entries entirely
     return r
