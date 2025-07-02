@@ -43,7 +43,7 @@ class Entry:
             d1 = d[:-1]
             d2 = d[-1]
         except IndexError as e:
-            print(f"d: {d!r}, d1: {d1!r}")
+            print(f"IndexError: with values d: {d!r}, d1: {d1!r}")
             raise e
         if d2 not in {'~', '^'}:
             d1 += d2
