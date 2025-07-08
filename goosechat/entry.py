@@ -19,11 +19,6 @@ def _cleancrlf(s: str) -> str:
         elif c != '\r':
             r += c
     return r
-def _parsebool(s: str) -> bool:
-    s = s.lower()
-    if s == 'true':
-        return True
-    return False
 
 class Entry:
     "class representing an entry in the chat log"
@@ -48,7 +43,7 @@ class Entry:
             d1 = d[:-1]
             d2 = d[-1]
         except IndexError as e:
-            print(f"d: {d!r}, d1: {d1!r}")
+            print(f"IndexError: with values d: {d!r}, d1: {d1!r}")
             raise e
         if d2 not in {'~', '^'}:
             d1 += d2
@@ -76,7 +71,7 @@ def add_msg(msg: str, user: str='guest', timestamp: Optional[float]=None, legit:
     else: entryfile = ENTRIES_FILE
     if timestamp is None:
         timestamp = time.time()
-    entry = Entry(timestamp, user, _cleancrlf(msg), _parsebool(legit))
+    entry = Entry(timestamp, user, _cleancrlf(msg), legit)
     with ENTRYFILELOCK:
         with open(entryfile, 'a', encoding='utf-8') as f:
             f.write(entry.dump())
@@ -101,5 +96,7 @@ def get_entries(chat_id: str='default') -> list[Entry]:
         except FileNotFoundError as e:
             raise ChatNotFoundError(entryfile)
     for line in d:
-        r.append(Entry.load(line))
+        #if line == '': continue # old solution, idk if it works or not
+        try: r.append(Entry.load(line))
+        except IndexError: pass # skip malformed entries entirely
     return r

@@ -23,6 +23,7 @@
 #  
 # 
 
+import base64
 from flask import Flask, request, Response, redirect
 from goosechat import entry, markup, auth, ChatNotFoundError
 
@@ -53,14 +54,13 @@ def chat_page(name):
                                                 entries
                                                 )
                                             )
-        #"""
-        return "NotImplemented<br><br><hr>Coming soon!"
     elif request.method == 'POST':
         # post to chat
         user  = request.cookies.get('username', 'guest').strip(' ') # fixes a bug my sister found...
-        legit = request.cookies.get('legit', 'False')
+        legit = auth.is_legit(request.cookies)
+        if user == 'Moderator': legit = False
         msg   = request.form.get('msg')
-        print(f"Adding message {msg!r} from user {user!r} to chat {name!r}. Cookies: {request.cookies!r}")
+        print(f"Adding message {msg!r} by user {user!r} to chat {name!r} from {request.remote_addr}")
         entry.add_msg(msg, user, legit=legit, chat_id=name)
         return redirect("/chat/"+name)
     else:
@@ -74,7 +74,7 @@ def login_page():
         username = request.form.get('username').strip(' ')
         password = auth.encodepass(request.form.get('passwd'))
         if username not in HIDDEN_PASSWORDS:
-            print(f"Loggin in with username: {username!r} password: {password!r}")
+            print(f"Loggin in with username: {username!r} from {request.remote_addr}")
         #print("Received and encoded username and password")
         resp = Response('<script>location.pathname="/";</script>')
         legit = 'False'
@@ -94,6 +94,8 @@ def login_page():
             #resp.set_cookie('legit', 'True')
             legit = 'True'
         resp.set_cookie('legit', legit)
+        if legit == 'True':
+            resp.set_cookie('goosechat-authcode', base64.b64encode(auth.authcodemanager.get_code(username)))
         resp.set_cookie('username', username)
         return resp
 
@@ -114,6 +116,7 @@ def _chatnotfoundhandler(e):
     return markup.render_basic_template('404 - Not found', markup.readfrom('static/404.html').format(err)), 404
 
 if __name__ == '__main__':
+    auth.start_entry_timeout_thread()
     app.run('0.0.0.0', debug=__debug__, threaded=True)
 
 ###############
